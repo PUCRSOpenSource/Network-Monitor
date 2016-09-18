@@ -22,6 +22,11 @@
 
 unsigned char buffer[BUFFSIZE];
 
+int min_package_size = 32767;
+int max_package_size = 0;
+int avarage_package_size = 0;
+int number_of_packages = 0;
+
 int arp_request_count = 0;
 int arp_request_percentage = 50;
 int arp_reply_count = 0;
@@ -39,6 +44,17 @@ bool is_arp(char *buffer) {
 	return buffer[0] == 8 && buffer[1] == 6;
 }
 
+void process_package_size(ssize_t size) {
+	number_of_packages++;
+	if (size < min_package_size) {
+		min_package_size = size;
+	}
+	if (size > max_package_size) {
+		max_package_size = size;
+	}
+	avarage_package_size = (avarage_package_size * (number_of_packages - 1) + size) / number_of_packages;
+}
+
 void process_arp(int type) {
 	if (type == ARP_REQUEST) {
 		arp_request_count++;
@@ -52,10 +68,16 @@ void process_arp(int type) {
 }
 
 void print_statistics() {
+	printf("Geral\n");
+	printf("max package size: %d\n", max_package_size);
+	printf("min package size: %d\n", min_package_size);
+	printf("avarage package size: %d\n", avarage_package_size);
+	printf("Nivel de enlace\n");
 	printf("number of arp requests: %d\n", arp_request_count);
 	printf("number of arp replies: %d\n", arp_reply_count);
 	printf("percentage of arp requests: %d%%\n", arp_request_percentage);
 	printf("percentage of arp replies: %d%%\n", arp_reply_percentage);
+	printf("\n");
 }
 
 int main(int argc,char *argv[])
@@ -73,7 +95,9 @@ int main(int argc,char *argv[])
 	ioctl(sockd, SIOCSIFFLAGS, &ifr);
 
 	while (1) {
-		recv(sockd,(char *) &buffer, sizeof(buffer), 0x0);
+		ssize_t package_size = recv(sockd,(char *) &buffer, sizeof(buffer), 0x0);
+		process_package_size(package_size);
+
 		// printf("MAC Destino: %x:%x:%x:%x:%x:%x \n", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5]);
 		// printf("MAC Origem:  %x:%x:%x:%x:%x:%x \n", buffer[6],buffer[7],buffer[8],buffer[9],buffer[10],buffer[11]);
 		//
@@ -83,9 +107,8 @@ int main(int argc,char *argv[])
 		// }
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
-			print_statistics();
 		}
 
-		// printf("\n");
+		print_statistics();
 	}
 }
