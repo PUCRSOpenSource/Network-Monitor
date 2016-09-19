@@ -18,10 +18,14 @@
 #define ETH_TYPE_INDEX 12
 #define ARP_TYPE_INDEX 21
 #define IP_PROTOCOL_INDEX 23
+#define ICMP_TYPE_INDEX 34
 #define ARP_REQUEST 1
 #define ARP_REPLY 2
 #define ICMP_ECHO_REQUEST 8
 #define ICMP_ECHO_REPLY 0
+#define ICMP 1
+#define TCP 6
+#define UDP 17
 
 
 unsigned char buffer[BUFFSIZE];
@@ -59,15 +63,15 @@ bool is_arp(char *buffer) {
 }
 
 bool is_icmp(int protocol) {
-	return protocol == 1;
+	return protocol == ICMP;
 }
 
 bool is_tcp(int protocol) {
-	return protocol == 6;
+	return protocol == TCP;
 }
 
 bool is_udp(int protocol) {
-	return protocol == 17;
+	return protocol == UDP;
 }
 
 void process_package_size(ssize_t size) {
@@ -161,7 +165,7 @@ int main(int argc,char *argv[])
 
 		if (is_ipv4(&buffer[ETH_TYPE_INDEX])) {
 			if (is_icmp(buffer[IP_PROTOCOL_INDEX])) {
-				process_icmp(buffer[34]);
+				process_icmp(buffer[ICMP_TYPE_INDEX]);
 			}
 			if (is_udp(buffer[IP_PROTOCOL_INDEX])) {
 				process_udp();
