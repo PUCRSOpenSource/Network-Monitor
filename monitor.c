@@ -37,11 +37,14 @@ int arp_reply_count = 0;
 int arp_reply_percentage = 50;
 
 int icmp_count = 0;
+int icmp_percentage = 0;
 int icmp_echo_request_count = 0;
 int icmp_echo_reply_count = 0;
 
 int udp_count = 0;
+int udp_percentage = 0;
 int tcp_count = 0;
+int tcp_percentage = 0;
 
 int sockd;
 int on;
@@ -99,14 +102,17 @@ void process_icmp(int type) {
 	if (type == ICMP_ECHO_REPLY) {
 		icmp_echo_reply_count++;
 	}
+	icmp_percentage = icmp_count * 100 / number_of_packages;
 }
 
 void process_udp() {
 	udp_count++;
+	udp_percentage = udp_count * 100 / number_of_packages;
 }
 
 void process_tcp() {
 	tcp_count++;
+	tcp_percentage = tcp_count * 100 / number_of_packages;
 }
 
 void print_statistics() {
@@ -121,8 +127,14 @@ void print_statistics() {
 	printf("percentage of arp replies: %d%%\n", arp_reply_percentage);
 	printf("Nivel de rede\n");
 	printf("number of icmp: %d\n", icmp_count);
+	printf("percentage of tcp packages: %d\n", icmp_percentage);
 	printf("number of icmp echo requests: %d\n", icmp_echo_request_count);
 	printf("number of icmp echo replies: %d\n", icmp_echo_reply_count);
+	printf("Nível de Transporte\n");
+	printf("number of tcp packages: %d\n", tcp_count);
+	printf("percentage of tcp packages: %d\n", tcp_percentage);
+	printf("number of udp packages: %d\n", udp_count);
+	printf("percentage of udp packages: %d\n", udp_percentage);
 	printf("\n");
 }
 
@@ -158,13 +170,13 @@ int main(int argc,char *argv[])
 				process_tcp();
 			}
 
-			printf("ip source %d.%d.%d.%d\n", buffer[26], buffer[27], buffer[28], buffer[29]);
-			printf("ip destination %d.%d.%d.%d\n", buffer[30], buffer[31], buffer[32], buffer[33]);
+			// printf("ip source %d.%d.%d.%d\n", buffer[26], buffer[27], buffer[28], buffer[29]);
+			// printf("ip destination %d.%d.%d.%d\n", buffer[30], buffer[31], buffer[32], buffer[33]);
 		}
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
 		}
 
-		// print_statistics();
+		print_statistics();
 	}
 }
