@@ -131,14 +131,14 @@ void print_statistics() {
 	printf("percentage of arp replies: %d%%\n", arp_reply_percentage);
 	printf("Nivel de rede\n");
 	printf("number of icmp: %d\n", icmp_count);
-	printf("percentage of tcp packages: %d\n", icmp_percentage);
+	printf("percentage of tcp packages: %d%%\n", icmp_percentage);
 	printf("number of icmp echo requests: %d\n", icmp_echo_request_count);
 	printf("number of icmp echo replies: %d\n", icmp_echo_reply_count);
 	printf("Nível de Transporte\n");
 	printf("number of tcp packages: %d\n", tcp_count);
-	printf("percentage of tcp packages: %d\n", tcp_percentage);
+	printf("percentage of tcp packages: %d%%\n", tcp_percentage);
 	printf("number of udp packages: %d\n", udp_count);
-	printf("percentage of udp packages: %d\n", udp_percentage);
+	printf("percentage of udp packages: %d%%\n", udp_percentage);
 	printf("\n");
 }
 
@@ -149,7 +149,7 @@ int main(int argc,char *argv[])
 		exit(1);
     }
 
-	strcpy(ifr.ifr_name, "wlan0");
+	strcpy(ifr.ifr_name, argv[1]);
 	if(ioctl(sockd, SIOCGIFINDEX, &ifr) < 0)
 		printf("erro no ioctl!");
 	ioctl(sockd, SIOCGIFFLAGS, &ifr);
