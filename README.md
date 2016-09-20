@@ -19,8 +19,8 @@ raw, e deve implementar as seguintes funcionalidades:
   - [x] Quantidade e porcentagem de pacotes UDP
   - [x] Quantidade e porcentagem de pacotes TCP
   - [ ] Número de conexões TCP iniciadas
-  - [ ] Lista com as 5 portas TCP mais acessadas
-  - [ ] Lista com as 5 portas UDP mais acessadas
+  - [x] Lista com as 5 portas TCP mais acessadas
+  - [x] Lista com as 5 portas UDP mais acessadas
 - Nível de Aplicação
   - [x] Quantidade e porcentagem de pacotes HTTP
   - [x] Quantidade e porcentagem de pacotes DNS
