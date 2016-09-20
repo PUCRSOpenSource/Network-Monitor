@@ -19,6 +19,8 @@
 #define ARP_TYPE_INDEX 21
 #define IP_PROTOCOL_INDEX 23
 #define ICMP_TYPE_INDEX 34
+#define IP_SRC_INDEX 26
+#define IP_DST_INDEX 30
 #define ARP_REQUEST 1
 #define ARP_REPLY 2
 #define ICMP_ECHO_REQUEST 8
@@ -26,6 +28,8 @@
 #define ICMP 1
 #define TCP 6
 #define UDP 17
+
+#define IP_LIST_SIZE 2
 
 
 unsigned char buffer[BUFFSIZE];
@@ -50,9 +54,21 @@ int udp_percentage = 0;
 int tcp_count = 0;
 int tcp_percentage = 0;
 
+unsigned char ips[IP_LIST_SIZE][4];
+int ip_num_access[IP_LIST_SIZE];
+
 int sockd;
 int on;
 struct ifreq ifr;
+
+void init() {
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		ip_num_access[i] = 0;
+		for (size_t j = 0; j < 4; j++) {
+			ips[i][j] = 0;
+		}
+	}
+}
 
 bool is_ipv4(char *buffer) {
 	return buffer[0] == 8 && buffer[1] == 0;
@@ -119,6 +135,55 @@ void process_tcp() {
 	tcp_percentage = tcp_count * 100 / number_of_packages;
 }
 
+int least_accessed_ip_index() {
+	int lowest_index = 0;
+	int lowest_value = ip_num_access[lowest_index];
+	for (size_t i = 1; i < IP_LIST_SIZE; i++) {
+		if (ip_num_access[i] < lowest_value) {
+			lowest_value = ip_num_access[i];
+			lowest_index = i;
+		}
+	}
+	return lowest_index;
+}
+
+void print_ip(unsigned char *ip) {
+	printf("ip: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+}
+
+void copy_ip(unsigned char *ip, unsigned char *buffer) {
+	for (size_t i = 0; i < 4; i++) {
+		buffer[i] = ip[i];
+	}
+}
+
+void add_ip(unsigned char *ip) {
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		bool match = true;
+		for (size_t j = 0; j < 4; j++) {
+			if (ip[j] != ips[i][j]) {
+				match = false;
+			}
+		}
+		if (match) {
+			ip_num_access[i]++;
+			return;
+		}
+	}
+	int index = least_accessed_ip_index();
+	copy_ip(ip, ips[index]);
+	ip_num_access[index] = 1;
+}
+
+void print_ips() {
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		// if (ips[i][0] != 0 && ips[i][1] != 0 && ips[i][2] && 0 && ips[i][3] != 0) {
+			printf("IP: %d.%d.%d.%d\n", ips[i][0], ips[i][1], ips[i][2], ips[i][3]);
+			printf("Accessed %d times\n", ip_num_access[i]);
+		// }
+	}
+}
+
 void print_statistics() {
 	printf("Geral\n");
 	printf("max package size: %d\n", max_package_size);
@@ -155,13 +220,10 @@ int main(int argc,char *argv[])
 	ioctl(sockd, SIOCGIFFLAGS, &ifr);
 	ifr.ifr_flags |= IFF_PROMISC;
 	ioctl(sockd, SIOCSIFFLAGS, &ifr);
-
+	init();
 	while (1) {
 		ssize_t package_size = recv(sockd,(char *) &buffer, sizeof(buffer), 0x0);
 		process_package_size(package_size);
-
-		// printf("MAC Destino: %x:%x:%x:%x:%x:%x \n", buffer[0],buffer[1],buffer[2],buffer[3],buffer[4],buffer[5]);
-		// printf("MAC Origem:  %x:%x:%x:%x:%x:%x \n", buffer[6],buffer[7],buffer[8],buffer[9],buffer[10],buffer[11]);
 
 		if (is_ipv4(&buffer[ETH_TYPE_INDEX])) {
 			if (is_icmp(buffer[IP_PROTOCOL_INDEX])) {
@@ -173,14 +235,18 @@ int main(int argc,char *argv[])
 			if (is_tcp(buffer[IP_PROTOCOL_INDEX])) {
 				process_tcp();
 			}
+			add_ip(&buffer[IP_SRC_INDEX]);
+			add_ip(&buffer[IP_DST_INDEX]);
 
-			// printf("ip source %d.%d.%d.%d\n", buffer[26], buffer[27], buffer[28], buffer[29]);
-			// printf("ip destination %d.%d.%d.%d\n", buffer[30], buffer[31], buffer[32], buffer[33]);
+			print_ips();
+
+			// printf("ip destination %d.%d.%d.%d\n\n", buffer[30], buffer[31], buffer[32], buffer[33]);
+			return 0;
 		}
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
 		}
 
-		print_statistics();
+		// print_statistics();
 	}
 }
