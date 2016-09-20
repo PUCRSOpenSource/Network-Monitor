@@ -177,10 +177,10 @@ void add_ip(unsigned char *ip) {
 
 void print_ips() {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		// if (ips[i][0] != 0 && ips[i][1] != 0 && ips[i][2] && 0 && ips[i][3] != 0) {
+		if (ip_num_access[i] > 0) {
 			printf("IP: %d.%d.%d.%d\n", ips[i][0], ips[i][1], ips[i][2], ips[i][3]);
 			printf("Accessed %d times\n", ip_num_access[i]);
-		// }
+		}
 	}
 }
 
@@ -236,7 +236,7 @@ int main(int argc,char *argv[])
 				process_tcp();
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
-			add_ip(&buffer[IP_DST_INDEX]);
+			// add_ip(&buffer[IP_DST_INDEX]);
 
 			print_ips();
 
