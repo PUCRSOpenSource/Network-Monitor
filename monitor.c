@@ -61,6 +61,25 @@ int sockd;
 int on;
 struct ifreq ifr;
 
+void init();
+bool is_ipv4(char *buffer);
+bool is_arp(char *buffer);
+bool is_icmp(int protocol);
+bool is_tcp(int protocol);
+bool is_udp(int protocol);
+void process_package_size(ssize_t size);
+void process_arp(int type);
+void process_icmp(int type);
+void process_udp();
+void process_tcp();
+int least_accessed_ip_index();
+void print_ip(unsigned char *ip);
+void copy_ip(unsigned char *ip, unsigned char *buffer);
+void add_ip(unsigned char *ip);
+void most_accessed_ip_indexes(int *most_accessed_indexes);
+void print_ips();
+void print_statistics();
+
 void init() {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
 		ip_num_access[i] = 0;
@@ -135,26 +154,8 @@ void process_tcp() {
 	tcp_percentage = tcp_count * 100 / number_of_packages;
 }
 
-int least_accessed_ip_index() {
-	int lowest_index = 0;
-	int lowest_value = ip_num_access[lowest_index];
-	for (size_t i = 1; i < IP_LIST_SIZE; i++) {
-		if (ip_num_access[i] < lowest_value) {
-			lowest_value = ip_num_access[i];
-			lowest_index = i;
-		}
-	}
-	return lowest_index;
-}
-
 void print_ip(unsigned char *ip) {
 	printf("ip: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
-}
-
-void copy_ip(unsigned char *ip, unsigned char *buffer) {
-	for (size_t i = 0; i < 4; i++) {
-		buffer[i] = ip[i];
-	}
 }
 
 void add_ip(unsigned char *ip) {
@@ -175,21 +176,21 @@ void add_ip(unsigned char *ip) {
 	ip_num_access[index] = 1;
 }
 
-void most_accessed_ip_indexes(int *most_accessed_indexes) {
-	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		if (ip_num_access[i] == 0) {
-			continue;
+int least_accessed_ip_index() {
+	int lowest_index = 0;
+	int lowest_value = ip_num_access[lowest_index];
+	for (size_t i = 1; i < IP_LIST_SIZE; i++) {
+		if (ip_num_access[i] < lowest_value) {
+			lowest_value = ip_num_access[i];
+			lowest_index = i;
 		}
-		for (size_t j = 0; j < 5; j++) {
-			if (most_accessed_indexes[j] == -1) {
-				most_accessed_indexes[j] = i;
-				break;
-			}
-			if (ip_num_access[i] > ip_num_access[most_accessed_indexes[j]]) {
-				most_accessed_indexes[j] = i;
-				break;
-			}
-		}
+	}
+	return lowest_index;
+}
+
+void copy_ip(unsigned char *ip, unsigned char *buffer) {
+	for (size_t i = 0; i < 4; i++) {
+		buffer[i] = ip[i];
 	}
 }
 
@@ -206,6 +207,24 @@ void print_ips() {
 		}
 	}
 	printf("----------------------\n");
+}
+
+void most_accessed_ip_indexes(int *most_accessed_indexes) {
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		if (ip_num_access[i] == 0) {
+			continue;
+		}
+		for (size_t j = 0; j < 5; j++) {
+			if (most_accessed_indexes[j] == -1) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
+			if (ip_num_access[i] > ip_num_access[most_accessed_indexes[j]]) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
+		}
+	}
 }
 
 void print_statistics() {
