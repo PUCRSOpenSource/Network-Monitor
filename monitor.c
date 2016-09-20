@@ -259,6 +259,7 @@ void copy_ip(unsigned char *ip, unsigned char *buffer) {
 void print_ports() {
 	int indexes[5] = {-1, -1, -1, -1, -1};
 	most_accessed_port_indexes(indexes);
+	printf("----------------------\n");
 	for (size_t i = 0; i < 5; i++) {
 		if (indexes[i] >= 0) {
 			printf("PORT: %d\n", ports[indexes[i]]);
@@ -289,6 +290,7 @@ void most_accessed_port_indexes(int *most_accessed_indexes) {
 void print_ips() {
 	int indexes[5] = {-1, -1, -1, -1, -1};
 	most_accessed_ip_indexes(indexes);
+	printf("----------------------\n");
 	for (size_t i = 0; i < 5; i++) {
 		if (indexes[i] >= 0) {
 			printf("IP: %d.%d.%d.%d\n", ips[indexes[i]][0], ips[indexes[i]][1], ips[indexes[i]][2], ips[indexes[i]][3]);
@@ -331,11 +333,20 @@ void print_statistics() {
 	printf("percentage of tcp packages: %d%%\n", icmp_percentage);
 	printf("number of icmp echo requests: %d\n", icmp_echo_request_count);
 	printf("number of icmp echo replies: %d\n", icmp_echo_reply_count);
+	printf("Most accessed ips: \n");
+	print_ips();
 	printf("Nível de Transporte\n");
 	printf("number of tcp packages: %d\n", tcp_count);
 	printf("percentage of tcp packages: %d%%\n", tcp_percentage);
 	printf("number of udp packages: %d\n", udp_count);
 	printf("percentage of udp packages: %d%%\n", udp_percentage);
+	printf("Most accessed ports\n");
+	print_ports();
+	printf("Nivel de aplicação\n");
+	printf("number of http packages: %d\n", http_count);
+	printf("percentage of http packages: %d\n", http_percentage);
+	printf("number of dns packages: %d\n", dns_count);
+	printf("percentage of dns packages: %d\n", dns_percentage);
 	printf("\n");
 }
 
@@ -353,7 +364,10 @@ int main(int argc,char *argv[])
 	ifr.ifr_flags |= IFF_PROMISC;
 	ioctl(sockd, SIOCSIFFLAGS, &ifr);
 	init();
+	int i = 0;
 	while (1) {
+		if(i > 50) break;
+		i++;
 		ssize_t package_size = recv(sockd,(char *) &buffer, sizeof(buffer), 0x0);
 		process_package_size(package_size);
 
@@ -385,17 +399,11 @@ int main(int argc,char *argv[])
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
 			add_ip(&buffer[IP_DST_INDEX]);
-
-			// print_ips();
-			print_ports();
-
-			// printf("ip destination %d.%d.%d.%d\n\n", buffer[30], buffer[31], buffer[32], buffer[33]);
-			// return 0;
 		}
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
 		}
 
-		// print_statistics();
 	}
+	print_statistics();
 }
