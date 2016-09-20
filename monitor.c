@@ -29,7 +29,7 @@
 #define TCP 6
 #define UDP 17
 
-#define IP_LIST_SIZE 2
+#define IP_LIST_SIZE 100
 
 
 unsigned char buffer[BUFFSIZE];
@@ -175,13 +175,37 @@ void add_ip(unsigned char *ip) {
 	ip_num_access[index] = 1;
 }
 
-void print_ips() {
+void most_accessed_ip_indexes(int *most_accessed_indexes) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		if (ip_num_access[i] > 0) {
-			printf("IP: %d.%d.%d.%d\n", ips[i][0], ips[i][1], ips[i][2], ips[i][3]);
-			printf("Accessed %d times\n", ip_num_access[i]);
+		if (ip_num_access[i] == 0) {
+			continue;
+		}
+		for (size_t j = 0; j < 5; j++) {
+			if (most_accessed_indexes[j] == -1) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
+			if (ip_num_access[i] > ip_num_access[most_accessed_indexes[j]]) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
 		}
 	}
+}
+
+void print_ips() {
+	int indexes[5] = {-1, -1, -1, -1, -1};
+	most_accessed_ip_indexes(indexes);
+	// for (size_t i = 0; i < 5; i++) {
+	// 	printf("%d - ", indexes[i]);
+	// }
+	for (size_t i = 0; i < 5; i++) {
+		if (indexes[i] >= 0) {
+			printf("IP: %d.%d.%d.%d\n", ips[indexes[i]][0], ips[indexes[i]][1], ips[indexes[i]][2], ips[indexes[i]][3]);
+			printf("Accessed %d times\n", ip_num_access[indexes[i]]);
+		}
+	}
+	printf("----------------------\n");
 }
 
 void print_statistics() {
@@ -236,12 +260,12 @@ int main(int argc,char *argv[])
 				process_tcp();
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
-			// add_ip(&buffer[IP_DST_INDEX]);
+			add_ip(&buffer[IP_DST_INDEX]);
 
 			print_ips();
 
 			// printf("ip destination %d.%d.%d.%d\n\n", buffer[30], buffer[31], buffer[32], buffer[33]);
-			return 0;
+			// return 0;
 		}
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
