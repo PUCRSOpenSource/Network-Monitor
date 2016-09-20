@@ -14,7 +14,7 @@ raw, e deve implementar as seguintes funcionalidades:
 - Nível de Rede
   - [x] Quantidade e porcentagem de pacotes ICMP
   - [x] Quantidade e porcentagem de ICMP Echo Request e ICMP Echo Reply
-  - [ ] Lista com os 5 IPs mais acessados na rede
+  - [x] Lista com os 5 IPs mais acessados na rede
 - Nível de Transporte
   - [x] Quantidade e porcentagem de pacotes UDP
   - [x] Quantidade e porcentagem de pacotes TCP
