@@ -22,7 +22,7 @@ raw, e deve implementar as seguintes funcionalidades:
   - [ ] Lista com as 5 portas TCP mais acessadas
   - [ ] Lista com as 5 portas UDP mais acessadas
 - Nível de Aplicação
-  - [ ] Quantidade e porcentagem de pacotes HTTP
-  - [ ] Quantidade e porcentagem de pacotes DNS
+  - [x] Quantidade e porcentagem de pacotes HTTP
+  - [x] Quantidade e porcentagem de pacotes DNS
   - [ ] Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
   - [ ] Lista com os 5 sites mais acessados

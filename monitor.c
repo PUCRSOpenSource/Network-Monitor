@@ -54,6 +54,11 @@ int udp_percentage = 0;
 int tcp_count = 0;
 int tcp_percentage = 0;
 
+int http_count = 0;
+int dns_count = 0;
+int http_percentage = 0;
+int dns_percentage = 0;
+
 unsigned char ips[IP_LIST_SIZE][4];
 int ip_num_access[IP_LIST_SIZE];
 
@@ -74,6 +79,8 @@ void process_arp(int type);
 void process_icmp(int type);
 void process_udp();
 void process_tcp();
+void process_http();
+void process_dns();
 int least_accessed_ip_index();
 void print_ip(unsigned char *ip);
 void copy_ip(unsigned char *ip, unsigned char *buffer);
@@ -162,6 +169,16 @@ void process_udp() {
 void process_tcp() {
 	tcp_count++;
 	tcp_percentage = tcp_count * 100 / number_of_packages;
+}
+
+void process_http() {
+	http_count++;
+	http_percentage = http_count * 100 / number_of_packages;
+}
+
+void process_dns() {
+	dns_count++;
+	dns_percentage = dns_count * 100 / number_of_packages;
 }
 
 void print_ip(unsigned char *ip) {
@@ -282,19 +299,19 @@ int main(int argc,char *argv[])
 			if (is_udp(buffer[IP_PROTOCOL_INDEX])) {
 				process_udp();
 				if (is_dns(buffer[35], buffer[37])) {
-					printf("dns udp\n");
+					process_dns();
 				}
 				if (is_http(buffer[35], buffer[37])) {
-					printf("http\n");
+					process_http();
 				}
 			}
 			if (is_tcp(buffer[IP_PROTOCOL_INDEX])) {
 				process_tcp();
 				if (is_dns(buffer[35], buffer[37])) {
-					printf("dns tcp\n");
+					process_dns();
 				}
 				if (is_http(buffer[35], buffer[37])) {
-					printf("http\n");
+					process_http();
 				}
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
