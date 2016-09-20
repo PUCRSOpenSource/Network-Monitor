@@ -67,6 +67,8 @@ bool is_arp(char *buffer);
 bool is_icmp(int protocol);
 bool is_tcp(int protocol);
 bool is_udp(int protocol);
+bool is_http(int src_port, int dst_port);
+bool is_dns(int src_port, int dst_port);
 void process_package_size(ssize_t size);
 void process_arp(int type);
 void process_icmp(int type);
@@ -107,6 +109,14 @@ bool is_tcp(int protocol) {
 
 bool is_udp(int protocol) {
 	return protocol == UDP;
+}
+
+bool is_http(int src_port, int dst_port) {
+	return src_port == 80 || dst_port == 80;
+}
+
+bool is_dns(int src_port, int dst_port) {
+	return src_port == 53 || dst_port == 53;
 }
 
 void process_package_size(ssize_t size) {
@@ -197,9 +207,6 @@ void copy_ip(unsigned char *ip, unsigned char *buffer) {
 void print_ips() {
 	int indexes[5] = {-1, -1, -1, -1, -1};
 	most_accessed_ip_indexes(indexes);
-	// for (size_t i = 0; i < 5; i++) {
-	// 	printf("%d - ", indexes[i]);
-	// }
 	for (size_t i = 0; i < 5; i++) {
 		if (indexes[i] >= 0) {
 			printf("IP: %d.%d.%d.%d\n", ips[indexes[i]][0], ips[indexes[i]][1], ips[indexes[i]][2], ips[indexes[i]][3]);
@@ -274,14 +281,26 @@ int main(int argc,char *argv[])
 			}
 			if (is_udp(buffer[IP_PROTOCOL_INDEX])) {
 				process_udp();
+				if (is_dns(buffer[35], buffer[37])) {
+					printf("dns udp\n");
+				}
+				if (is_http(buffer[35], buffer[37])) {
+					printf("http\n");
+				}
 			}
 			if (is_tcp(buffer[IP_PROTOCOL_INDEX])) {
 				process_tcp();
+				if (is_dns(buffer[35], buffer[37])) {
+					printf("dns tcp\n");
+				}
+				if (is_http(buffer[35], buffer[37])) {
+					printf("http\n");
+				}
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
 			add_ip(&buffer[IP_DST_INDEX]);
 
-			print_ips();
+			// print_ips();
 
 			// printf("ip destination %d.%d.%d.%d\n\n", buffer[30], buffer[31], buffer[32], buffer[33]);
 			// return 0;
