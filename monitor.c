@@ -40,14 +40,16 @@ int avarage_package_size = 0;
 int number_of_packages = 0;
 
 int arp_request_count = 0;
-int arp_request_percentage = 50;
+int arp_request_percentage = 0;
 int arp_reply_count = 0;
-int arp_reply_percentage = 50;
+int arp_reply_percentage = 0;
 
 int icmp_count = 0;
 int icmp_percentage = 0;
 int icmp_echo_request_count = 0;
+int icmp_echo_request_percentage = 0;
 int icmp_echo_reply_count = 0;
+int icmp_echo_reply_percentage = 0;
 
 int udp_count = 0;
 int udp_percentage = 0;
@@ -95,6 +97,7 @@ int least_accessed_port_index();
 void print_statistics();
 void print_ports();
 void most_accessed_port_indexes(int *most_accessed_indexes);
+void process_percentages();
 
 void init() {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
@@ -153,10 +156,6 @@ void process_arp(int type) {
 	if (type == ARP_REPLY) {
 		arp_reply_count++;
 	}
-
-	int total = arp_reply_count + arp_request_count;
-	arp_request_percentage = arp_request_count * 100 / total;
-	arp_reply_percentage = 100 - arp_request_percentage;
 }
 
 void process_icmp(int type) {
@@ -167,27 +166,22 @@ void process_icmp(int type) {
 	if (type == ICMP_ECHO_REPLY) {
 		icmp_echo_reply_count++;
 	}
-	icmp_percentage = icmp_count * 100 / number_of_packages;
 }
 
 void process_udp() {
 	udp_count++;
-	udp_percentage = udp_count * 100 / number_of_packages;
 }
 
 void process_tcp() {
 	tcp_count++;
-	tcp_percentage = tcp_count * 100 / number_of_packages;
 }
 
 void process_http() {
 	http_count++;
-	http_percentage = http_count * 100 / number_of_packages;
 }
 
 void process_dns() {
 	dns_count++;
-	dns_percentage = dns_count * 100 / number_of_packages;
 }
 
 void print_ip(unsigned char *ip) {
@@ -318,6 +312,20 @@ void most_accessed_ip_indexes(int *most_accessed_indexes) {
 	}
 }
 
+void process_percentages() {
+	arp_request_percentage = arp_request_count * 100 / number_of_packages;
+	arp_reply_percentage = arp_reply_count * 100 / number_of_packages;
+
+	icmp_percentage = icmp_count * 100 / number_of_packages;
+	icmp_echo_request_percentage = icmp_echo_request_count * 100 / number_of_packages;
+	icmp_echo_reply_percentage = icmp_echo_reply_count * 100 / number_of_packages;
+
+	udp_percentage = udp_count * 100 / number_of_packages;
+	tcp_percentage = tcp_count * 100 / number_of_packages;
+	http_percentage = http_count * 100 / number_of_packages;
+	dns_percentage = dns_count * 100 / number_of_packages;
+}
+
 void print_statistics() {
 	printf("Geral\n");
 	printf("max package size: %d\n", max_package_size);
@@ -377,25 +385,31 @@ int main(int argc,char *argv[])
 			}
 			if (is_udp(buffer[IP_PROTOCOL_INDEX])) {
 				process_udp();
-				if (is_dns(buffer[35], buffer[37])) {
+				int src_port = (buffer[34] << 8) + buffer[35];
+				int dst_port = (buffer[36] << 8) + buffer[37];
+
+				if (is_dns(src_port, dst_port)) {
 					process_dns();
 				}
-				if (is_http(buffer[35], buffer[37])) {
+				if (is_http(src_port, dst_port)) {
 					process_http();
 				}
-				add_port((buffer[34] << 8) + buffer[35]);
-				add_port((buffer[36] << 8) + buffer[37]);
+				add_port(src_port);
+				add_port(dst_port);
 			}
 			if (is_tcp(buffer[IP_PROTOCOL_INDEX])) {
 				process_tcp();
-				if (is_dns(buffer[35], buffer[37])) {
+				int src_port = (buffer[34] << 8) + buffer[35];
+				int dst_port = (buffer[36] << 8) + buffer[37];
+
+				if (is_dns(src_port, dst_port)) {
 					process_dns();
 				}
-				if (is_http(buffer[35], buffer[37])) {
+				if (is_http(src_port, dst_port)) {
 					process_http();
 				}
-				add_port((buffer[34] << 8) + buffer[35]);
-				add_port((buffer[36] << 8) + buffer[37]);
+				add_port(src_port);
+				add_port(dst_port);
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
 			add_ip(&buffer[IP_DST_INDEX]);
@@ -403,6 +417,8 @@ int main(int argc,char *argv[])
 		if (is_arp(&buffer[ETH_TYPE_INDEX])) {
 			process_arp(buffer[ARP_TYPE_INDEX]);
 		}
+
+		process_percentages();
 
 	}
 	print_statistics();
