@@ -57,9 +57,14 @@ int tcp_count = 0;
 int tcp_percentage = 0;
 
 int http_count = 0;
+int https_count = 0;
 int dns_count = 0;
+int ssh_count = 0;
 int http_percentage = 0;
 int dns_percentage = 0;
+int https_percentage = 0;
+int ssh_percentage = 0;
+
 
 unsigned char ips[IP_LIST_SIZE][4];
 int ip_num_access[IP_LIST_SIZE];
@@ -81,6 +86,8 @@ bool is_tcp(int protocol);
 bool is_udp(int protocol);
 bool is_http(int src_port, int dst_port);
 bool is_dns(int src_port, int dst_port);
+bool is_https(int src_port, int dst_port);
+bool is_ssh(int src_port, int dst_port);
 void process_package_size(ssize_t size);
 void process_arp(int type);
 void process_icmp(int type);
@@ -88,6 +95,7 @@ void process_udp();
 void process_tcp();
 void process_http();
 void process_dns();
+void process_ssh();
 int least_accessed_ip_index();
 void print_ip(unsigned char *ip);
 void copy_ip(unsigned char *ip, unsigned char *buffer);
@@ -146,6 +154,14 @@ bool is_dns(int src_port, int dst_port) {
 	return src_port == 53 || dst_port == 53;
 }
 
+bool is_https(int src_port, int dst_port) {
+	return src_port == 443 || dst_port == 443;
+}
+
+bool is_ssh(int src_port, int dst_port) {
+	return src_port == 22 || dst_port == 22;
+}
+
 void process_package_size(ssize_t size) {
 	number_of_packages++;
 	if (size < min_package_size) {
@@ -188,8 +204,16 @@ void process_http() {
 	http_count++;
 }
 
+void process_https() {
+	https_count++;
+}
+
 void process_dns() {
 	dns_count++;
+}
+
+void process_ssh() {
+	ssh_count++;
 }
 
 void print_ip(unsigned char *ip) {
@@ -386,6 +410,8 @@ void process_percentages() {
 	tcp_percentage = tcp_count * 100 / number_of_packages;
 	http_percentage = http_count * 100 / number_of_packages;
 	dns_percentage = dns_count * 100 / number_of_packages;
+	https_percentage = https_count * 100 / number_of_packages;
+	ssh_percentage = ssh_count * 100 / number_of_packages;
 }
 
 void print_statistics() {
@@ -429,6 +455,10 @@ void print_statistics() {
 	printf("Percentual de pacotes HTTP: %d%%\n", http_percentage);
 	printf("Número de pacotes DNS: %d\n", dns_count);
 	printf("Percentual de pacotes DNS: %d%%\n", dns_percentage);
+	printf("Número de pacotes HTTPS: %d\n", https_count);
+	printf("Percentual de pacotes HTTPS: %d%%\n", https_percentage);
+	printf("Número de pacotes SSH: %d\n", ssh_count);
+	printf("Percentual de pacotes SSH: %d%%\n", ssh_percentage);
 	printf("\n");
 }
 
@@ -474,6 +504,12 @@ int main(int argc,char *argv[])
 				if (is_http(src_port, dst_port)) {
 					process_http();
 				}
+				if (is_https(src_port, dst_port)) {
+					process_https();
+				}
+				if (is_ssh(src_port, dst_port)) {
+					process_ssh();
+				}
 				add_udp_port(src_port);
 				add_udp_port(dst_port);
 			}
@@ -487,6 +523,12 @@ int main(int argc,char *argv[])
 				}
 				if (is_http(src_port, dst_port)) {
 					process_http();
+				}
+				if (is_https(src_port, dst_port)) {
+					process_https();
+				}
+				if (is_ssh(src_port, dst_port)) {
+					process_ssh();
 				}
 				add_tcp_port(src_port);
 				add_tcp_port(dst_port);

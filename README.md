@@ -24,5 +24,5 @@ raw, e deve implementar as seguintes funcionalidades:
 - Nível de Aplicação
   - [x] Quantidade e porcentagem de pacotes HTTP
   - [x] Quantidade e porcentagem de pacotes DNS
-  - [ ] Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
+  - [x] Quantidade e porcentagem para outros 2 protocolos de aplicação quaisquer
   - [ ] Lista com os 5 sites mais acessados
