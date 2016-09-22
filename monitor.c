@@ -434,6 +434,12 @@ void print_statistics() {
 
 int main(int argc,char *argv[])
 {
+
+	if(argc <= 2) {
+		printf("Formato: ./arquivo interface numero-de-pacotes\n");
+		return 0;
+	}
+
     if((sockd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
     	printf("Erro na criacao do socket.\n");
 		exit(1);
@@ -448,8 +454,8 @@ int main(int argc,char *argv[])
 	init();
 	int i = 0;
 	while (1) {
-		if(i > 50) break;
 		i++;
+		if(i > atoi(argv[2])) break;
 		ssize_t package_size = recv(sockd,(char *) &buffer, sizeof(buffer), 0x0);
 		process_package_size(package_size);
 
