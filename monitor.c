@@ -64,8 +64,10 @@ int dns_percentage = 0;
 unsigned char ips[IP_LIST_SIZE][4];
 int ip_num_access[IP_LIST_SIZE];
 
-int ports[IP_LIST_SIZE];
-int port_num_access[IP_LIST_SIZE];
+int tcp_ports[IP_LIST_SIZE];
+int udp_ports[IP_LIST_SIZE];
+int tcp_port_num_access[IP_LIST_SIZE];
+int udp_port_num_access[IP_LIST_SIZE];
 
 int sockd;
 int on;
@@ -92,18 +94,24 @@ void copy_ip(unsigned char *ip, unsigned char *buffer);
 void add_ip(unsigned char *ip);
 void most_accessed_ip_indexes(int *most_accessed_indexes);
 void print_ips();
-void add_port(int port);
-int least_accessed_port_index();
+void add_tcp_port(int port);
+void add_udp_port(int port);
+int least_accessed_tcp_port_index();
+int least_accessed_udp_port_index();
 void print_statistics();
-void print_ports();
-void most_accessed_port_indexes(int *most_accessed_indexes);
+void print_tcp_ports();
+void print_udp_ports();
+void most_accessed_tcp_port_indexes(int *most_accessed_indexes);
+void most_accessed_udp_port_indexes(int *most_accessed_indexes);
 void process_percentages();
 
 void init() {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
 		ip_num_access[i] = 0;
-		port_num_access[i] = 0;
-		ports[i] = 0;
+		tcp_port_num_access[i] = 0;
+		tcp_ports[i] = 0;
+		udp_port_num_access[i] = 0;
+		udp_ports[i] = 0;
 		for (size_t j = 0; j < 4; j++) {
 			ips[i][j] = 0;
 		}
@@ -188,30 +196,54 @@ void print_ip(unsigned char *ip) {
 	printf("ip: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
 }
 
-void add_port(int port) {
+void add_tcp_port(int port) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		if (port == ports[i]) {
-			port_num_access[i]++;
+		if (port == tcp_ports[i]) {
+			tcp_port_num_access[i]++;
 			return;
 		}
 	}
-	int index = least_accessed_port_index();
-	ports[index] = port;
-	port_num_access[index] = 1;
+	int index = least_accessed_tcp_port_index();
+	tcp_ports[index] = port;
+	tcp_port_num_access[index] = 1;
 }
 
-int least_accessed_port_index() {
-	int lowest_index = 0;
-	int lowest_value = port_num_access[lowest_index];
+void add_udp_port(int port) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		if (port_num_access[i] < lowest_value) {
-			lowest_value = port_num_access[i];
+		if (port == udp_ports[i]) {
+			udp_port_num_access[i]++;
+			return;
+		}
+	}
+	int index = least_accessed_udp_port_index();
+	udp_ports[index] = port;
+	udp_port_num_access[index] = 1;
+}
+
+
+int least_accessed_tcp_port_index() {
+	int lowest_index = 0;
+	int lowest_value = tcp_port_num_access[lowest_index];
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		if (tcp_port_num_access[i] < lowest_value) {
+			lowest_value = tcp_port_num_access[i];
 			lowest_index = i;
 		}
 	}
 	return lowest_index;
 }
 
+int least_accessed_udp_port_index() {
+	int lowest_index = 0;
+	int lowest_value = udp_port_num_access[lowest_index];
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		if (udp_port_num_access[i] < lowest_value) {
+			lowest_value = udp_port_num_access[i];
+			lowest_index = i;
+		}
+	}
+	return lowest_index;
+}
 
 void add_ip(unsigned char *ip) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
@@ -249,22 +281,35 @@ void copy_ip(unsigned char *ip, unsigned char *buffer) {
 	}
 }
 
-void print_ports() {
+void print_tcp_ports() {
 	int indexes[5] = {-1, -1, -1, -1, -1};
-	most_accessed_port_indexes(indexes);
+	most_accessed_tcp_port_indexes(indexes);
 	printf("----------------------\n");
 	for (size_t i = 0; i < 5; i++) {
 		if (indexes[i] >= 0) {
-			printf("PORT: %d\n", ports[indexes[i]]);
-			printf("Accessed %d times\n", port_num_access[indexes[i]]);
+			printf("PORT: %d\n", tcp_ports[indexes[i]]);
+			printf("Accessed %d times\n", tcp_port_num_access[indexes[i]]);
 		}
 	}
 	printf("----------------------\n");
 }
 
-void most_accessed_port_indexes(int *most_accessed_indexes) {
+void print_udp_ports() {
+	int indexes[5] = {-1, -1, -1, -1, -1};
+	most_accessed_udp_port_indexes(indexes);
+	printf("----------------------\n");
+	for (size_t i = 0; i < 5; i++) {
+		if (indexes[i] >= 0) {
+			printf("PORT: %d\n", udp_ports[indexes[i]]);
+			printf("Accessed %d times\n", udp_port_num_access[indexes[i]]);
+		}
+	}
+	printf("----------------------\n");
+}
+
+void most_accessed_tcp_port_indexes(int *most_accessed_indexes) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		if (port_num_access[i] == 0) {
+		if (tcp_port_num_access[i] == 0) {
 			continue;
 		}
 		for (size_t j = 0; j < 5; j++) {
@@ -272,7 +317,25 @@ void most_accessed_port_indexes(int *most_accessed_indexes) {
 				most_accessed_indexes[j] = i;
 				break;
 			}
-			if (port_num_access[i] > port_num_access[most_accessed_indexes[j]]) {
+			if (tcp_port_num_access[i] > tcp_port_num_access[most_accessed_indexes[j]]) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
+		}
+	}
+}
+
+void most_accessed_udp_port_indexes(int *most_accessed_indexes) {
+	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
+		if (udp_port_num_access[i] == 0) {
+			continue;
+		}
+		for (size_t j = 0; j < 5; j++) {
+			if (most_accessed_indexes[j] == -1) {
+				most_accessed_indexes[j] = i;
+				break;
+			}
+			if (udp_port_num_access[i] > udp_port_num_access[most_accessed_indexes[j]]) {
 				most_accessed_indexes[j] = i;
 				break;
 			}
@@ -355,8 +418,10 @@ void print_statistics() {
 	printf("Percentual de pacotes TCP: %d%%\n", tcp_percentage);
 	printf("Número de pacotes UDP: %d\n", udp_count);
 	printf("Percentual de pacotes UDP: %d%%\n", udp_percentage);
-	printf("Portas mais acessadas\n");
-	print_ports();
+	printf("Portas TCP mais acessadas\n");
+	print_tcp_ports();
+	printf("Portas UDP mais acessadas\n");
+	print_udp_ports();
 	printf("\n");
 
 	printf("Nivel de aplicação\n");
@@ -403,8 +468,8 @@ int main(int argc,char *argv[])
 				if (is_http(src_port, dst_port)) {
 					process_http();
 				}
-				add_port(src_port);
-				add_port(dst_port);
+				add_udp_port(src_port);
+				add_udp_port(dst_port);
 			}
 			if (is_tcp(buffer[IP_PROTOCOL_INDEX])) {
 				process_tcp();
@@ -417,8 +482,8 @@ int main(int argc,char *argv[])
 				if (is_http(src_port, dst_port)) {
 					process_http();
 				}
-				add_port(src_port);
-				add_port(dst_port);
+				add_tcp_port(src_port);
+				add_tcp_port(dst_port);
 			}
 			add_ip(&buffer[IP_SRC_INDEX]);
 			add_ip(&buffer[IP_DST_INDEX]);
