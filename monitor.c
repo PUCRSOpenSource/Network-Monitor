@@ -72,8 +72,8 @@ int on;
 struct ifreq ifr;
 
 void init();
-bool is_ipv4(char *buffer);
-bool is_arp(char *buffer);
+bool is_ipv4(unsigned char *buffer);
+bool is_arp(unsigned char *buffer);
 bool is_icmp(int protocol);
 bool is_tcp(int protocol);
 bool is_udp(int protocol);
@@ -110,11 +110,11 @@ void init() {
 	}
 }
 
-bool is_ipv4(char *buffer) {
+bool is_ipv4(unsigned char *buffer) {
 	return buffer[0] == 8 && buffer[1] == 0;
 }
 
-bool is_arp(char *buffer) {
+bool is_arp(unsigned char *buffer) {
 	return buffer[0] == 8 && buffer[1] == 6;
 }
 
@@ -190,7 +190,6 @@ void print_ip(unsigned char *ip) {
 
 void add_port(int port) {
 	for (size_t i = 0; i < IP_LIST_SIZE; i++) {
-		bool match = true;
 		if (port == ports[i]) {
 			port_num_access[i]++;
 			return;
@@ -328,33 +327,43 @@ void process_percentages() {
 
 void print_statistics() {
 	printf("Geral\n");
-	printf("max package size: %d\n", max_package_size);
-	printf("min package size: %d\n", min_package_size);
-	printf("avarage package size: %d\n", avarage_package_size);
+	printf("Tamanho mínimo do pacote: %d\n", min_package_size);
+	printf("Tamanho máximo do pacote: %d\n", max_package_size);
+	printf("Média do tamanho dos pacotes: %d\n", avarage_package_size);
+	printf("\n");
+
 	printf("Nivel de enlace\n");
-	printf("number of arp requests: %d\n", arp_request_count);
-	printf("number of arp replies: %d\n", arp_reply_count);
-	printf("percentage of arp requests: %d%%\n", arp_request_percentage);
-	printf("percentage of arp replies: %d%%\n", arp_reply_percentage);
+	printf("Número de ARP Requests: %d\n", arp_request_count);
+	printf("Número de ARP Replies: %d\n", arp_reply_count);
+	printf("Percentual de ARP Requests: %d%%\n", arp_request_percentage);
+	printf("Percentual de ARP Replies: %d%%\n", arp_reply_percentage);
+	printf("\n");
+
 	printf("Nivel de rede\n");
-	printf("number of icmp: %d\n", icmp_count);
-	printf("percentage of tcp packages: %d%%\n", icmp_percentage);
-	printf("number of icmp echo requests: %d\n", icmp_echo_request_count);
-	printf("number of icmp echo replies: %d\n", icmp_echo_reply_count);
-	printf("Most accessed ips: \n");
+	printf("Número de pacotes ICMP: %d\n", icmp_count);
+	printf("Percentual de pacotes ICMP: %d%%\n", icmp_percentage);
+	printf("Número de ICMP ECHO Requests: %d\n", icmp_echo_request_count);
+	printf("Percentual de ICMP ECHO Requests: %d%%\n", icmp_echo_request_percentage);
+	printf("Número de ICMP ECHO Replies: %d\n", icmp_echo_reply_count);
+	printf("Percentual de ICMP ECHO Replies: %d%%\n", icmp_echo_reply_percentage);
+	printf("5 IPS mais acessados: \n");
 	print_ips();
+	printf("\n");
+
 	printf("Nível de Transporte\n");
-	printf("number of tcp packages: %d\n", tcp_count);
-	printf("percentage of tcp packages: %d%%\n", tcp_percentage);
-	printf("number of udp packages: %d\n", udp_count);
-	printf("percentage of udp packages: %d%%\n", udp_percentage);
-	printf("Most accessed ports\n");
+	printf("Número de pacotes TCP: %d\n", tcp_count);
+	printf("Percentual de pacotes TCP: %d%%\n", tcp_percentage);
+	printf("Número de pacotes UDP: %d\n", udp_count);
+	printf("Percentual de pacotes UDP: %d%%\n", udp_percentage);
+	printf("Portas mais acessadas\n");
 	print_ports();
+	printf("\n");
+
 	printf("Nivel de aplicação\n");
-	printf("number of http packages: %d\n", http_count);
-	printf("percentage of http packages: %d\n", http_percentage);
-	printf("number of dns packages: %d\n", dns_count);
-	printf("percentage of dns packages: %d\n", dns_percentage);
+	printf("Número de pacotes HTTP: %d\n", http_count);
+	printf("Percentual de pacotes HTTP: %d%%\n", http_percentage);
+	printf("Número de pacotes DNS: %d\n", dns_count);
+	printf("Percentual de pacotes DNS: %d%%\n", dns_percentage);
 	printf("\n");
 }
 
