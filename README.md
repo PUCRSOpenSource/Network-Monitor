@@ -1,3 +1,14 @@
+# Manual
+
+Para Compilação executar o comando `gcc monitor.c`
+
+Para executar o programa utilizar o comando `sudo ./a.out interface num-packages`
+
+Os dois argumentos para execução do programa são:
+
+- Interface de rede a ser monitorada.
+- Número de pacotes para monitorar antes de mostrar o relatório.
+
 # Definição do Primeiro Trabalho
 
 O trabalho consiste em desenvolver um monitor de rede para geração de estatísticas e
